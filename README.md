@@ -13,10 +13,7 @@ An Android application built with Jetpack Compose to control and monitor a PIC m
 - **Adaptive UI:** Responsive layout adapting to both Portrait and Landscape orientations.
 
 ## Demo
-
-<video src="demo.mp4" controls="controls" width="100%">
-  Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/9a0cdeec-df6b-483a-9340-731da9cb6147
 
 ## Tech Stack
 
