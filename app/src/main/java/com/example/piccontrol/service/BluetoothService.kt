@@ -1,5 +1,6 @@
 package com.example.piccontrol.service
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -11,17 +12,25 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.example.piccontrol.R
 import com.example.piccontrol.data.BluetoothController
+import com.example.piccontrol.data.SensorDataRepository
 import com.example.piccontrol.domain.BluetoothDeviceInformation
 import com.example.piccontrol.domain.BluetoothState
+import com.example.piccontrol.domain.SensorData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class BluetoothService : Service() {
 
     private val bluetoothController: BluetoothController by inject()
+    private val sensorDataRepository: SensorDataRepository by inject()
     private val serviceScope = CoroutineScope(Dispatchers.Default)
+    private var currentDeviceName = ""
 
     override fun onCreate() {
         super.onCreate()
@@ -30,6 +39,17 @@ class BluetoothService : Service() {
             bluetoothController.bluetoothState.collect { state ->
                 if (state == BluetoothState.TURNING_OFF || state == BluetoothState.OFF)
                     stopSelf()
+            }
+        }
+        serviceScope.launch {
+            val notificationManager =
+                getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            sensorDataRepository.sensorData.conflate().collect { data ->
+                val updatedNotification = buildDynamicNotification(currentDeviceName, data)
+                notificationManager.notify(100, updatedNotification)
+
+                delay(1000.milliseconds)
             }
         }
     }
@@ -55,17 +75,16 @@ class BluetoothService : Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val deviceName = intent.getStringExtra(EXTRA_DEVICE_NAME)
+        currentDeviceName = intent.getStringExtra(EXTRA_DEVICE_NAME) ?: getString(R.string.no_name_device)
         val deviceAddress = intent.getStringExtra(EXTRA_DEVICE_ADDRESS).orEmpty()
         val deviceInformation = BluetoothDeviceInformation(
-            name = deviceName,
+            name = currentDeviceName,
             address = deviceAddress
         )
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
-            .setContentTitle(getString(R.string.connected_to, deviceName))
-            .setOngoing(true)
-            .build()
+        val notification = buildDynamicNotification(
+            deviceName = currentDeviceName,
+            data = SensorData()
+        )
         ServiceCompat.startForeground(
             /* service = */ this,
             /* id = */ 100, // Cannot be 0
@@ -84,8 +103,26 @@ class BluetoothService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        serviceScope.cancel()
         bluetoothController.disconnect()
         stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
+    private fun buildDynamicNotification(
+        deviceName: String,
+        data: SensorData
+    ): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setContentTitle(getString(R.string.connected_to, deviceName))
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    "P1: ${data.p1} | P2: ${data.p2}\n" +
+                            "P3: ${data.p3} | P4: ${data.p4}"
+                )
+            )
+            .setOngoing(true)
+            .build()
     }
 
 }

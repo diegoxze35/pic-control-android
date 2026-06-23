@@ -3,6 +3,7 @@ package com.example.piccontrol.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.piccontrol.data.BluetoothController
+import com.example.piccontrol.data.SensorDataRepository
 import com.example.piccontrol.domain.BluetoothState
 import com.example.piccontrol.domain.CommandType
 import com.example.piccontrol.ui.state.UiState
@@ -12,13 +13,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainScreenViewModel(private val bluetoothController: BluetoothController) : ViewModel() {
+class MainScreenViewModel(
+    private val bluetoothController: BluetoothController,
+    private val sensorDataRepository: SensorDataRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     val btState: StateFlow<BluetoothState> = bluetoothController.bluetoothState
-
-    private var accumulatedData = ""
 
     init {
         viewModelScope.launch {
@@ -28,47 +30,10 @@ class MainScreenViewModel(private val bluetoothController: BluetoothController) 
         }
 
         viewModelScope.launch {
-            bluetoothController.incomingData.collect { data ->
-                parseData(data)
+            sensorDataRepository.sensorData.collect { sensorData ->
+                _uiState.update { it.copy(sensorData = sensorData) }
             }
         }
-    }
-
-    private fun parseData(newData: String) {
-        accumulatedData += newData
-        if (accumulatedData.contains("\n")) {
-            val lines = accumulatedData.split("\n")
-            for (i in 0 until lines.size - 1) {
-                val line = lines[i].trim()
-                if (line == "M:DONE") {
-                    _uiState.update { it.copy(isMotorMoving = false) }
-                } else {
-                    processLine(line)
-                }
-            }
-            accumulatedData = lines.last()
-        }
-    }
-
-    private fun processLine(line: String) {
-        val parts = line.split(",")
-        var p1 = _uiState.value.p1
-        var p2 = _uiState.value.p2
-        var p3 = _uiState.value.p3
-        var p4 = _uiState.value.p4
-        parts.forEach { part ->
-            val kv = part.split(":")
-            if (kv.size == 2) {
-                val value = kv[1].toIntOrNull() ?: 0
-                when (kv[0].trim()) {
-                    "P1" -> p1 = value
-                    "P2" -> p2 = value
-                    "P3" -> p3 = value
-                    "P4" -> p4 = value
-                }
-            }
-        }
-        _uiState.update { it.copy(p1 = p1, p2 = p2, p3 = p3, p4 = p4) }
     }
 
     fun setFanSpeed(speed: Int) {
@@ -94,8 +59,10 @@ class MainScreenViewModel(private val bluetoothController: BluetoothController) 
     }
 
     fun sendMotorMove(degrees: Int) {
-        _uiState.update { it.copy(motorDegrees = degrees, isMotorMoving = true) }
-
+        _uiState.update {
+            it.copy(motorDegrees = degrees)
+        }
+        sensorDataRepository.setMotorMoving()
         viewModelScope.launch {
             // Conversión: 360 grados = 4096 pasos (Motor 28BYJ-48 en Half-Step)
             val steps = ((degrees.toFloat() / 360f) * 4096).toInt()

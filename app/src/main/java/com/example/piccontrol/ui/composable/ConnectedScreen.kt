@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.piccontrol.domain.BluetoothDeviceInformation
 import com.example.piccontrol.domain.ConnectionState
+import com.example.piccontrol.domain.SensorData
 import com.example.piccontrol.theme.PICControlTheme
 import com.example.piccontrol.ui.state.UiState
 
@@ -52,16 +53,16 @@ fun ConnectedScreen(
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    GaugeComponent("Pot 1", uiState.p1, 1023, Icons.Default.ElectricBolt)
-                    GaugeComponent("Pot 2", uiState.p2, 1023, Icons.Default.ElectricBolt)
+                    GaugeComponent("Pot 1", uiState.sensorData.p1, 1023, Icons.Default.ElectricBolt)
+                    GaugeComponent("Pot 2", uiState.sensorData.p2, 1023, Icons.Default.ElectricBolt)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    GaugeComponent("Pot 3", uiState.p3, 1023, Icons.Default.ElectricBolt)
-                    GaugeComponent("Pot 4", uiState.p4, 1023, Icons.Default.ElectricBolt)
+                    GaugeComponent("Pot 3", uiState.sensorData.p3, 1023, Icons.Default.ElectricBolt)
+                    GaugeComponent("Pot 4", uiState.sensorData.p4, 1023, Icons.Default.ElectricBolt)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -81,7 +82,7 @@ fun ConnectedScreen(
                     speed = uiState.motorSpeed,
                     isRightDir = uiState.motorDirection,
                     degrees = uiState.motorDegrees,
-                    isMotorMoving = uiState.isMotorMoving,
+                    isMotorMoving = uiState.sensorData.isMotorMoving,
                     onSpeedChange = { onMotorSpeedChange(it.toInt()) },
                     onDirChange = { onMotorDirChange(it) },
                     onSendMove = { onMotorMoveSend(it) }
@@ -101,10 +102,10 @@ fun ConnectedScreen(
                     .padding(8.dp)
                     .weight(0.5f)
             ) {
-                GaugeComponent("Pot 1", uiState.p1, 1023, Icons.Default.ElectricBolt)
-                GaugeComponent("Pot 2", uiState.p2, 1023, Icons.Default.ElectricBolt)
-                GaugeComponent("Pot 3", uiState.p3, 1023, Icons.Default.ElectricBolt)
-                GaugeComponent("Pot 4", uiState.p4, 1023, Icons.Default.ElectricBolt)
+                GaugeComponent("Pot 1", uiState.sensorData.p1, 1023, Icons.Default.ElectricBolt)
+                GaugeComponent("Pot 2", uiState.sensorData.p2, 1023, Icons.Default.ElectricBolt)
+                GaugeComponent("Pot 3", uiState.sensorData.p3, 1023, Icons.Default.ElectricBolt)
+                GaugeComponent("Pot 4", uiState.sensorData.p4, 1023, Icons.Default.ElectricBolt)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
@@ -124,7 +125,7 @@ fun ConnectedScreen(
                     speed = uiState.motorSpeed,
                     isRightDir = uiState.motorDirection,
                     degrees = uiState.motorDegrees,
-                    isMotorMoving = uiState.isMotorMoving,
+                    isMotorMoving = uiState.sensorData.isMotorMoving,
                     onSpeedChange = { onMotorSpeedChange(it.toInt()) },
                     onDirChange = { onMotorDirChange(it) },
                     onSendMove = { onMotorMoveSend(it) }
@@ -146,15 +147,17 @@ private fun ConnectedPreview() {
                     .fillMaxSize()
                     .padding(it),
                 uiState = UiState(
-                    p1 = 512,
-                    p2 = 256,
-                    p3 = 768,
-                    p4 = 1023,
+                    sensorData = SensorData(
+                        p1 = 512,
+                        p2 = 256,
+                        p3 = 768,
+                        p4 = 1023,
+                        isMotorMoving = false,
+                    ),
                     fanSpeed = 128,
                     motorDirection = true,
                     motorSpeed = 64,
                     motorDegrees = 90,
-                    isMotorMoving = false,
                     connectionState = ConnectionState.Connected(
                         BluetoothDeviceInformation(
                             name = "Mock Device",

@@ -112,6 +112,8 @@ class BluetoothControllerImpl(private val context: Context) : BluetoothControlle
                     bluetoothSocket?.connect()
                     break
                 } catch (e: IOException) {
+                    if (!currentCoroutineContext().isActive)
+                        break
                     if (bluetoothAdapter?.isEnabled == false) {
                         handleBluetoothTurnedOff()
                         return@withContext
@@ -171,6 +173,8 @@ class BluetoothControllerImpl(private val context: Context) : BluetoothControlle
                 }
                 break
             } catch (e: IOException) {
+                if (!currentCoroutineContext().isActive)
+                    return
                 if (bluetoothAdapter?.isEnabled == false) {
                     handleBluetoothTurnedOff()
                     break
