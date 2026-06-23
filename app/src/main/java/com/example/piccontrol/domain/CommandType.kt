@@ -1,4 +1,4 @@
-package com.example.piccontrol.data
+package com.example.piccontrol.domain
 
 enum class CommandType(val byteValue: Byte) {
     FAN_SPEED(0x01),

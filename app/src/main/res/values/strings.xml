@@ -2,7 +2,7 @@
     <string name="app_name">PIC Control</string>
     <string name="select_hc_05">Select HC-05</string>
     <string name="no_devices">No paired devices</string>
-    <string name="unknown_device">Unknown device</string>
+    <string name="no_name_device">No name device</string>
     <string name="close">Close</string>
     <string name="fan">Fan: %1$d</string>
     <string name="connecting">Connecting…</string>
@@ -18,4 +18,18 @@
     <string name="grant_bluetooth_permissions">Please grant Bluetooth permissions to continue</string>
     <string name="grant_permissions">Grant Permissions</string>
     <string name="user_advice">Make sure to turn on bluetooth after granting all permissions</string>
+    <string name="bluetooth_generic_error">A Bluetooth error occurred</string>
+    <string name="bluetooth_has_turned_off">Bluetooth has turned off</string>
+    <string name="bluetooth_socket_manager_error">Bluetooth socket manager is not available.</string>
+    <string name="bluetooth_socket_closed">Bluetooth socket operation failed because the socket has been closed.</string>
+    <string name="bluetooth_null_device">Null device attempts to do socket connection.</string>
+    <string name="connected_to">Connected to %1$s</string>
+    <string name="reconnecting">Reconnecting</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="bluetooth_service_channel_name">Bluetooth Service</string>
+    <string name="reconnecting_message">Something went wrong and we\'re trying to reconnect with the device</string>
+    <string name="attempt_and_seconds">Attempt %1$d, next attempt in %2$d seconds</string>
+    <string name="bluetooth_off_message">Bluetooth is off, please turn on bluetooth to see paired devices and establish a connection</string>
+    <string name="turn_on_bluetooth">Turn on</string>
+
 </resources>
